@@ -15,10 +15,11 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as Plasma5Support
+import org.kde.plasma.plasmoid
 import "../../code/utils.js" as Utils
 
 Kirigami.FormLayout {
@@ -28,7 +29,7 @@ Kirigami.FormLayout {
     property var cfg_interfacesWhitelist: []
 
     Loader {
-        id: 'launcher'
+        id: launcher
         source: '../Launcher.qml'
     }
 
@@ -46,18 +47,22 @@ Kirigami.FormLayout {
             } else {
                 const transferData = Utils.parseTransferData(data.stdout)
 
-                interfacesWhitelist.model.clear()
+                interfacesModel.clear()
 
-                for (const name of plasmoid.configuration.interfacesWhitelist) {
-                    interfacesWhitelist.model.append({ name, shown: true })
+                const configWhitelist = cfg_interfacesWhitelist && cfg_interfacesWhitelist.length > 0
+                    ? cfg_interfacesWhitelist
+                    : ((typeof plasmoid !== 'undefined' ? plasmoid.configuration.interfacesWhitelist : Plasmoid.configuration.interfacesWhitelist) || [])
+
+                for (const name of configWhitelist) {
+                    interfacesModel.append({ name: name, shown: true })
                 }
 
                 for (var name in transferData) {
-                    if (plasmoid.configuration.interfacesWhitelist.indexOf(name) !== -1) {
+                    if (configWhitelist.indexOf(name) !== -1) {
                         continue
                     }
 
-                    interfacesWhitelist.model.append({ name, shown: false })
+                    interfacesModel.append({ name: name, shown: false })
                 }
             }
         }
@@ -70,7 +75,7 @@ Kirigami.FormLayout {
     GridLayout {
         columns: 2
 
-        CheckBox {
+        QQC2.CheckBox {
             id: launchApplicationEnabled
             text: i18n('Launch application when clicked:')
             enabled: launcher.item != null
@@ -81,13 +86,13 @@ Kirigami.FormLayout {
             enabled: launcher.item != null && launchApplicationEnabled.checked
         }
 
-        Text {
-            text: i18n('If you want to lauch an application,\nyou need to install the package plasma-addons first.')
+        QQC2.Label {
+            text: i18n('If you want to launch an application,\nyou need to install the package plasma-addons first.')
             visible: launcher.item == null
             Layout.columnSpan: 2
         }
 
-        CheckBox {
+        QQC2.CheckBox {
             id: interfacesWhitelistEnabled
             text: i18n('Show only the following network interfaces:')
             Layout.columnSpan: 2
@@ -104,38 +109,37 @@ Kirigami.FormLayout {
             Layout.columnSpan: 2
             Layout.fillWidth: true
 
-            ScrollView {
+            QQC2.ScrollView {
                 anchors.fill: parent
 
                 ListView {
                     id: interfacesWhitelist
                     anchors.fill: parent
                     clip: true
-                    Layout.columnSpan: 2
-
                     model: interfacesModel
 
                     delegate: Item {
                         id: interfaceItem
-                        height: Kirigami.Units.iconSizes.smallMedium + 2*Kirigami.Units.smallSpacing
+                        width: interfacesWhitelist.width
+                        height: Kirigami.Units.iconSizes.smallMedium + 2 * Kirigami.Units.smallSpacing
 
-                        property bool isHovered: false
-
-                        CheckBox {
+                        QQC2.CheckBox {
                             x: Kirigami.Units.smallSpacing
-                            y: Kirigami.Units.smallSpacing
+                            anchors.verticalCenter: parent.verticalCenter
 
-                            text: name
-                            checked: shown
+                            text: model.name
+                            checked: model.shown
                             enabled: interfacesWhitelistEnabled.checked
 
-                            onCheckedChanged: {
-                                var index = cfg_interfacesWhitelist.indexOf(name)
+                            onToggled: {
+                                var list = cfg_interfacesWhitelist ? cfg_interfacesWhitelist.slice() : []
+                                var index = list.indexOf(model.name)
                                 if (checked && index === -1) {
-                                    cfg_interfacesWhitelist.push(name)
+                                    list.push(model.name)
                                 } else if (!checked && index !== -1) {
-                                    cfg_interfacesWhitelist.splice(index, 1)
+                                    list.splice(index, 1)
                                 }
+                                cfg_interfacesWhitelist = list
                             }
                         }
                     }

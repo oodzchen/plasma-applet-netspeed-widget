@@ -16,19 +16,19 @@
  */
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Dialogs
-import QtQuick.Controls
+import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.extras as PlasmaExtras
 
-Dialog {
+QQC2.Dialog {
     id: appMenuDialog
     title: i18n('Choose an application')
-    standardButtons: Dialog.Cancel
+    standardButtons: QQC2.Dialog.Cancel
+    modal: true
 
-    width: 300
+    width: 320
     height: 400
 
     property string selectedMenuId: ''
@@ -44,8 +44,7 @@ Dialog {
     }
 
     PlasmaComponents.ScrollView {
-        width: parent.width
-        height: parent.height
+        anchors.fill: parent
 
         ListView {
             id: apps
@@ -60,7 +59,7 @@ Dialog {
 
             delegate: Item {
                 width: apps.width - 20
-                height: Kirigami.Units.iconSizes.small + 2*Kirigami.Units.smallSpacing
+                height: Kirigami.Units.iconSizes.small + 2 * Kirigami.Units.smallSpacing
 
                 property bool isHovered: false
 
@@ -82,19 +81,21 @@ Dialog {
                     }
 
                     RowLayout {
-                        x: Kirigami.Units.smallSpacing
-                        y: Kirigami.Units.smallSpacing
+                        anchors.fill: parent
+                        anchors.margins: Kirigami.Units.smallSpacing
+                        spacing: Kirigami.Units.smallSpacing
 
                         Kirigami.Icon {
-                            source: appsSource.data[desktop].iconName
+                            source: (appsSource.data[desktop] && appsSource.data[desktop].iconName) ? appsSource.data[desktop].iconName : "application-x-executable"
                             active: isHovered
                             implicitHeight: Kirigami.Units.iconSizes.small
                             implicitWidth: implicitHeight
                         }
 
                         PlasmaComponents.Label {
-                            text: appsSource.data[desktop].name
-                            height: parent.height
+                            text: (appsSource.data[desktop] && appsSource.data[desktop].name) ? appsSource.data[desktop].name : desktop
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
                             verticalAlignment: Text.AlignVCenter
                         }
                     }
@@ -103,8 +104,8 @@ Dialog {
 
             section.property: 'category'
             section.delegate: Item {
-                width: parent.width - 20
-                height: Kirigami.Units.iconSizes.small + 2*Kirigami.Units.smallSpacing
+                width: apps.width - 20
+                height: Kirigami.Units.iconSizes.small + 2 * Kirigami.Units.smallSpacing
 
                 Rectangle {
                     anchors.fill: parent
@@ -113,7 +114,7 @@ Dialog {
                     PlasmaComponents.Label {
                         x: Kirigami.Units.smallSpacing
                         y: 0
-                        width: parent.width - 2*Kirigami.Units.smallSpacing
+                        width: parent.width - 2 * Kirigami.Units.smallSpacing
                         height: parent.height
                         verticalAlignment: Text.AlignVCenter
                         text: section
@@ -130,12 +131,15 @@ Dialog {
     }
 
     function listMenuEntries(menuId) {
+        if (!appsSource.data[menuId] || !appsSource.data[menuId].entries) {
+            return
+        }
         for (var i = 0; i < appsSource.data[menuId].entries.length; i++) {
             var entry = appsSource.data[menuId].entries[i]
             if (/\.desktop$/.test(entry)) {
-                var category = (menuId == '/') ? '/' : menuId.slice(0, -1);
+                var category = (menuId === '/') ? '/' : menuId.slice(0, -1);
                 appsModel.append({desktop: entry, category: category})
-            } else if (/\/$/.test(entry) && entry != '.hidden/') {
+            } else if (/\/$/.test(entry) && entry !== '.hidden/') {
                 listMenuEntries(entry)
             }
         }

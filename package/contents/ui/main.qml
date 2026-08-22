@@ -12,48 +12,70 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import QtQuick
 import org.kde.plasma.plasmoid
+import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasma5support as Plasma5Support
 import "../code/utils.js" as Utils
 
 PlasmoidItem {
-    property bool showSeparately: plasmoid.configuration.showSeparately
-    property bool showLowSpeeds: plasmoid.configuration.showLowSpeeds
-    property string speedLayout: plasmoid.configuration.speedLayout
-    property bool swapDownUp: plasmoid.configuration.swapDownUp
-    property bool showIcons: plasmoid.configuration.showIcons
-    property bool showUnits: plasmoid.configuration.showUnits
-    property string speedUnits: plasmoid.configuration.speedUnits
-    property bool shortUnits: plasmoid.configuration.shortUnits
-    property double fontSizeScale: plasmoid.configuration.fontSize / 100
-    property double updateInterval: plasmoid.configuration.updateInterval
-    property bool customColors: plasmoid.configuration.customColors
-    property color byteColor: plasmoid.configuration.byteColor
-    property color kilobyteColor: plasmoid.configuration.kilobyteColor
-    property color megabyteColor: plasmoid.configuration.megabyteColor
-    property color gigabyteColor: plasmoid.configuration.gigabyteColor
+    id: root
 
-    property bool launchApplicationEnabled: plasmoid.configuration.launchApplicationEnabled
-    property string launchApplication: plasmoid.configuration.launchApplication
-    property bool interfacesWhitelistEnabled: plasmoid.configuration.interfacesWhitelistEnabled
-    property var interfacesWhitelist: plasmoid.configuration.interfacesWhitelist
+    property bool showSeparately: Plasmoid.configuration.showSeparately
+    property bool showLowSpeeds: Plasmoid.configuration.showLowSpeeds
+    property string speedLayout: Plasmoid.configuration.speedLayout
+    property bool swapDownUp: Plasmoid.configuration.swapDownUp
+    property bool showIcons: Plasmoid.configuration.showIcons
+    property bool showUnits: Plasmoid.configuration.showUnits
+    property string speedUnits: Plasmoid.configuration.speedUnits
+    property bool shortUnits: Plasmoid.configuration.shortUnits
+    property double fontSizeScale: (Plasmoid.configuration.fontSize || 100) / 100
+    property double updateInterval: Plasmoid.configuration.updateInterval || 1.0
+    property bool customColors: Plasmoid.configuration.customColors
+    property color byteColor: Plasmoid.configuration.byteColor
+    property color kilobyteColor: Plasmoid.configuration.kilobyteColor
+    property color megabyteColor: Plasmoid.configuration.megabyteColor
+    property color gigabyteColor: Plasmoid.configuration.gigabyteColor
+
+    property bool launchApplicationEnabled: Plasmoid.configuration.launchApplicationEnabled
+    property string launchApplication: Plasmoid.configuration.launchApplication
+    property bool interfacesWhitelistEnabled: Plasmoid.configuration.interfacesWhitelistEnabled
+    property var interfacesWhitelist: Plasmoid.configuration.interfacesWhitelist
 
     property var transferDataTs: 0
-    property var transferData: {}
-    property var speedData: {}
+    property var transferData: ({})
+    property var speedData: ({})
 
-    // For some reason, ToolTipAreas only work with fullRepresentation now
+    Plasmoid.icon: "network-connect"
+    toolTipMainText: i18n("Network usage")
+    toolTipSubText: {
+        var details = ''
+        for (var key in speedData) {
+            if (interfacesWhitelistEnabled && interfacesWhitelist.indexOf(key) === -1) {
+                continue
+            }
+
+            if (details !== '') {
+                details += '<br><br>'
+            }
+
+            details += '<b>' + key + '</b><br>'
+            details += 'Downloaded: <b>' + Utils.totalText(speedData[key].downTotal) + '</b>, Uploaded: <b>' + Utils.totalText(speedData[key].upTotal) + '</b>'
+        }
+        return details
+    }
+
+    compactRepresentation: CompactRepresentation {}
     fullRepresentation: CompactRepresentation {}
-    preferredRepresentation: fullRepresentation
+    preferredRepresentation: Plasmoid.formFactor === PlasmaCore.Types.Planar ? fullRepresentation : compactRepresentation
 
     Plasma5Support.DataSource {
         id: dataSource
         engine: 'executable'
         connectedSources: [Utils.NET_DATA_SOURCE]
-        interval: updateInterval * 1000
+        interval: Math.max(100, root.updateInterval * 1000)
 
         onNewData: (sourceName, data) => {
             if (data['exit code'] > 0) {

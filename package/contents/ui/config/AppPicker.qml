@@ -29,12 +29,18 @@ Item {
     width: childrenRect.width
     height: childrenRect.height
 
-    onMenuIdChanged: {
-        if (appsSource.data[menuId]) {
-            appButton.text = appsSource.data[menuId].name
-            appButton.iconSource = appsSource.data[menuId].iconName
+    onMenuIdChanged: updateButton()
+
+    function updateButton() {
+        if (menuId && appsSource.data[menuId]) {
+            appButton.text = appsSource.data[menuId].name || menuId
+            appButton.icon.name = appsSource.data[menuId].iconName || "application-x-executable"
+        } else if (menuId) {
+            appButton.text = menuId
+            appButton.icon.name = "application-x-executable"
         } else {
             appButton.text = i18n('Choose application ...')
+            appButton.icon.name = ""
         }
     }
 
@@ -42,6 +48,14 @@ Item {
         id: appsSource
         engine: 'apps'
         connectedSources: sources
+        onSourceAdded: (source) => {
+            if (source === menuId) {
+                updateButton()
+            }
+        }
+        onDataChanged: {
+            updateButton()
+        }
     }
 
     PlasmaComponents.Button {

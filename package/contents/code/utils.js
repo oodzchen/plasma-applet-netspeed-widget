@@ -4,14 +4,19 @@ const NET_DATA_SOURCE =
 function parseTransferData(data) {
     const transferData = {};
 
-    for (const line of data.trim("\n").split("\n")) {
+    if (!data) {
+        return transferData;
+    }
+
+    for (const line of data.trim().split("\n")) {
+        if (!line) continue;
         const [name, rx, tx] = line.split(",");
 
-        if (name === "lo") {
+        if (!name || name === "lo") {
             continue;
         }
 
-        transferData[name] = { rx, tx };
+        transferData[name] = { rx: Number(rx) || 0, tx: Number(tx) || 0 };
     }
 
     return transferData;
@@ -19,6 +24,10 @@ function parseTransferData(data) {
 
 function calcSpeedData(prevTransferData, nextTransferData, duration) {
     const speedData = {};
+
+    if (!duration || duration <= 0) {
+        return speedData;
+    }
 
     for (const key in nextTransferData) {
         if (prevTransferData && key in prevTransferData) {
@@ -34,4 +43,21 @@ function calcSpeedData(prevTransferData, nextTransferData, duration) {
     }
 
     return speedData;
+}
+
+function totalText(value) {
+    let unit;
+    if (value >= 1024 * 1024 * 1024) {
+        value /= 1024 * 1024 * 1024;
+        unit = "GiB";
+    } else if (value >= 1024 * 1024) {
+        value /= 1024 * 1024;
+        unit = "MiB";
+    } else if (value >= 1024) {
+        value /= 1024;
+        unit = "KiB";
+    } else {
+        unit = "B";
+    }
+    return (Math.round(value * 10) / 10).toFixed(1) + " " + unit;
 }

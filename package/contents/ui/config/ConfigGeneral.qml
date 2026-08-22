@@ -15,9 +15,10 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid
 
 Kirigami.FormLayout {
     property alias cfg_showSeparately: showSeparately.checked
@@ -39,13 +40,14 @@ Kirigami.FormLayout {
     GridLayout {
         columns: 2
 
-        Label {
+        QQC2.Label {
             text: i18n('Layout:')
         }
 
-        ComboBox {
+        QQC2.ComboBox {
             id: speedLayout
             textRole: 'label'
+            valueRole: 'value'
             model: [
                 {
                     'label': i18n('Automatic'),
@@ -60,24 +62,27 @@ Kirigami.FormLayout {
                     'value': 'columns'
                 }
             ]
-            onCurrentIndexChanged: cfg_speedLayout = model[currentIndex]['value']
+            onActivated: cfg_speedLayout = currentValue
 
             Component.onCompleted: {
+                var val = cfg_speedLayout || (typeof plasmoid !== 'undefined' ? plasmoid.configuration.speedLayout : Plasmoid.configuration.speedLayout)
                 for (var i = 0; i < model.length; i++) {
-                    if (model[i]['value'] == plasmoid.configuration.speedLayout) {
+                    if (model[i].value === val) {
                         speedLayout.currentIndex = i
+                        break
                     }
                 }
             }
         }
 
-        Label {
+        QQC2.Label {
             text: i18n('Display order:')
         }
 
-        ComboBox {
+        QQC2.ComboBox {
             id: displayOrder
             textRole: 'label'
+            valueRole: 'value'
             model: [
                 {
                     'label': i18n('Show upload speed first'),
@@ -88,24 +93,22 @@ Kirigami.FormLayout {
                     'value': 'down'
                 }
             ]
-            onCurrentIndexChanged: cfg_swapDownUp = model[currentIndex]['value'] == 'up'
+            onActivated: cfg_swapDownUp = (currentValue === 'up')
 
             Component.onCompleted: {
-                if (plasmoid.configuration.swapDownUp) {
-                    displayOrder.currentIndex = 0
-                } else {
-                    displayOrder.currentIndex = 1
-                }
+                var swap = cfg_swapDownUp !== undefined ? cfg_swapDownUp : (typeof plasmoid !== 'undefined' ? plasmoid.configuration.swapDownUp : Plasmoid.configuration.swapDownUp)
+                displayOrder.currentIndex = swap ? 0 : 1
             }
         }
 
-        Label {
+        QQC2.Label {
             text: i18n('Speed units:')
         }
 
-        ComboBox {
+        QQC2.ComboBox {
             id: speedUnits
             textRole: 'label'
+            valueRole: 'value'
             model: [
                 {
                     'label': i18n('Bits'),
@@ -116,80 +119,82 @@ Kirigami.FormLayout {
                     'value': 'bytes'
                 }
             ]
-            onCurrentIndexChanged: cfg_speedUnits = model[currentIndex]['value']
+            onActivated: cfg_speedUnits = currentValue
 
             Component.onCompleted: {
+                var val = cfg_speedUnits || (typeof plasmoid !== 'undefined' ? plasmoid.configuration.speedUnits : Plasmoid.configuration.speedUnits)
                 for (var i = 0; i < model.length; i++) {
-                    if (model[i]['value'] == plasmoid.configuration.speedUnits) {
+                    if (model[i].value === val) {
                         speedUnits.currentIndex = i
+                        break
                     }
                 }
             }
 
-            property string currentVal: model[currentIndex]['value']
+            property string currentVal: model[currentIndex] ? model[currentIndex].value : 'bytes'
         }
 
-        CheckBox {
+        QQC2.CheckBox {
             id: showUnits
             text: i18n('Show speed units')
             Layout.columnSpan: 2
         }
 
-        CheckBox {
+        QQC2.CheckBox {
             id: shortUnits
             text: i18n('Use shortened speed units')
             Layout.columnSpan: 2
             enabled: showUnits.checked
         }
 
-        CheckBox {
+        QQC2.CheckBox {
             id: showIcons
             text: i18n('Show upload and download icons')
             Layout.columnSpan: 2
         }
 
-        CheckBox {
+        QQC2.CheckBox {
             id: showSeparately
             text: i18n('Show download and upload speed separately')
             Layout.columnSpan: 2
         }
 
-        CheckBox {
+        QQC2.CheckBox {
             id: showLowSpeeds
             text: i18n('Show speeds below 1 kb/s')
             Layout.columnSpan: 2
         }
 
-        Label {
+        QQC2.Label {
             text: i18n('Font size:')
         }
 
-        SpinBox {
+        QQC2.SpinBox {
             id: fontSize
             from: 10
             to: 200
             stepSize: 5
             textFromValue: function(value) { return value + ' %'; }
-            valueFromText: function(text) { return Number(text.remove(RegExp(' %$'))); }
+            valueFromText: function(text) { return parseInt(text.replace(/[^0-9]/g, '')) || 100; }
         }
 
-        Label {
+        QQC2.Label {
             text: i18n('Update interval:')
         }
 
-        SpinBox {
+        QQC2.SpinBox {
             id: updateInterval
             from: 1
             to: 10
             stepSize: 1
             textFromValue: function(value) { return value + ' s'; }
-            valueFromText: function(text) { return Number(text.remove(RegExp(' s$'))); }
+            valueFromText: function(text) { return parseInt(text.replace(/[^0-9]/g, '')) || 1; }
         }
 
-        GroupBox {
-            label: CheckBox {
+        QQC2.GroupBox {
+            label: QQC2.CheckBox {
                 id: customColors
-                text: 'Use custom colors'
+                text: i18n('Use custom colors')
             }
             Layout.columnSpan: 2
 
@@ -198,12 +203,12 @@ Kirigami.FormLayout {
                 anchors.margins: Kirigami.Units.smallSpacing
                 columns: 2
 
-                Label {
+                QQC2.Label {
                     text: {
                         if (speedUnits.currentVal === 'bits') {
-                            return shortUnits.checked ? 'b' : 'b/s:'
+                            return shortUnits.checked ? 'b:' : 'b/s:'
                         } else {
-                            return shortUnits.checked ? 'B' : 'B/s:'
+                            return shortUnits.checked ? 'B:' : 'B/s:'
                         }
                     }
                     Layout.alignment: Qt.AlignRight
@@ -213,7 +218,7 @@ Kirigami.FormLayout {
                     id: byteColorPicker
                 }
 
-                Label {
+                QQC2.Label {
                     text: {
                         if (speedUnits.currentVal === 'bits') {
                             return shortUnits.checked ? 'k:' : 'kb/s:'
@@ -228,7 +233,7 @@ Kirigami.FormLayout {
                     id: kilobyteColorPicker
                 }
 
-                Label {
+                QQC2.Label {
                     text: {
                         if (speedUnits.currentVal === 'bits') {
                             return shortUnits.checked ? 'm:' : 'Mb/s:'
@@ -243,7 +248,7 @@ Kirigami.FormLayout {
                     id: megabyteColorPicker
                 }
 
-                Label {
+                QQC2.Label {
                     text: {
                         if (speedUnits.currentVal === 'bits') {
                             return shortUnits.checked ? 'g:' : 'Gb/s:'
