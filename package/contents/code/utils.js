@@ -25,27 +25,28 @@ function parseTransferData(data) {
 function calcSpeedData(prevTransferData, nextTransferData, duration) {
     const speedData = {};
 
-    if (!duration || duration <= 0) {
+    if (!nextTransferData) {
         return speedData;
     }
 
+    const hasDuration = duration && duration > 0;
+
     for (const key in nextTransferData) {
-        if (prevTransferData && key in prevTransferData) {
-            const prev = prevTransferData[key];
-            const next = nextTransferData[key];
-            speedData[key] = {
-                down: ((next.rx - prev.rx) * 1000) / duration,
-                up: ((next.tx - prev.tx) * 1000) / duration,
-                downTotal: nextTransferData[key].rx,
-                upTotal: nextTransferData[key].tx,
-            };
-        }
+        const next = nextTransferData[key];
+        const prev = (prevTransferData && key in prevTransferData) ? prevTransferData[key] : null;
+        speedData[key] = {
+            down: (prev && hasDuration) ? Math.max(0, ((next.rx - prev.rx) * 1000) / duration) : 0,
+            up: (prev && hasDuration) ? Math.max(0, ((next.tx - prev.tx) * 1000) / duration) : 0,
+            downTotal: next.rx,
+            upTotal: next.tx,
+        };
     }
 
     return speedData;
 }
 
 function totalText(value) {
+    value = Number(value) || 0;
     let unit;
     if (value >= 1024 * 1024 * 1024) {
         value /= 1024 * 1024 * 1024;

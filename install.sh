@@ -23,4 +23,9 @@ fi
 echo "Clearing QML/Plasma cache..."
 rm -rf ~/.cache/plasma* ~/.cache/plasmashell* 2>/dev/null || true
 
+if systemctl --user is-active --quiet plasma-plasmashell 2>/dev/null; then
+    echo "Restarting plasma-plasmashell to apply changes..."
+    systemctl --user restart plasma-plasmashell
+fi
+
 echo "Successfully installed $APPLET_ID for Plasma 6!"

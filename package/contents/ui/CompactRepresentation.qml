@@ -30,7 +30,7 @@ Item {
     property double downSpeed: {
         var speed = 0
         for (var key in speedData) {
-            if (interfacesWhitelistEnabled && interfacesWhitelist.indexOf(key) === -1) {
+            if (interfacesWhitelistEnabled && interfacesWhitelist && interfacesWhitelist.indexOf(key) === -1) {
                 continue
             }
             speed += speedData[key].down
@@ -41,7 +41,7 @@ Item {
     property double upSpeed: {
         var speed = 0
         for (var key in speedData) {
-            if (interfacesWhitelistEnabled && interfacesWhitelist.indexOf(key) === -1) {
+            if (interfacesWhitelistEnabled && interfacesWhitelist && interfacesWhitelist.indexOf(key) === -1) {
                 continue
             }
             speed += speedData[key].up

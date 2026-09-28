@@ -50,10 +50,11 @@ PlasmoidItem {
 
     Plasmoid.icon: "network-connect"
     toolTipMainText: i18n("Network usage")
+    toolTipTextFormat: Text.RichText
     toolTipSubText: {
         var details = ''
         for (var key in speedData) {
-            if (interfacesWhitelistEnabled && interfacesWhitelist.indexOf(key) === -1) {
+            if (interfacesWhitelistEnabled && interfacesWhitelist && interfacesWhitelist.indexOf(key) === -1) {
                 continue
             }
 
