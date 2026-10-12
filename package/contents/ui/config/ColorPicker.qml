@@ -20,27 +20,26 @@
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Dialogs as QtDialogs
-import Qt.labs.platform
+import QtQuick.Dialogs
 
 Item {
     id: colorPicker
 
-    property alias chosenColor: colorDialog.color
+    property alias chosenColor: colorDialog.selectedColor
 
     width: childrenRect.width
     height: childrenRect.height
     Layout.alignment: Qt.AlignVCenter
 
     Rectangle {
-        color: colorDialog.color
+        color: colorDialog.selectedColor
         radius: width / 2
         height: 20
         width: height
         opacity: enabled ? 1 : 0.5
         border {
             width: mouseArea.containsMouse ? 3 : 1
-            color: Qt.darker(colorDialog.color, 1.5)
+            color: Qt.darker(colorDialog.selectedColor, 1.5)
         }
 
         ColorDialog {

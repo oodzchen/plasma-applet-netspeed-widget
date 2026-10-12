@@ -18,6 +18,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid
 import org.kde.plasma.plasma5support as Plasma5Support
 import "../../code/utils.js" as Utils
 
@@ -26,6 +27,10 @@ Kirigami.FormLayout {
     property alias cfg_launchApplication: launchApplication.menuId
     property alias cfg_interfacesWhitelistEnabled: interfacesWhitelistEnabled.checked
     property var cfg_interfacesWhitelist: []
+
+    Component.onCompleted: {
+        cfg_interfacesWhitelist = (Plasmoid.configuration.interfacesWhitelist || []).slice()
+    }
 
     Loader {
         id: 'launcher'
@@ -48,12 +53,12 @@ Kirigami.FormLayout {
 
                 interfacesWhitelist.model.clear()
 
-                for (const name of plasmoid.configuration.interfacesWhitelist) {
+                for (const name of Plasmoid.configuration.interfacesWhitelist) {
                     interfacesWhitelist.model.append({ name, shown: true })
                 }
 
                 for (var name in transferData) {
-                    if (plasmoid.configuration.interfacesWhitelist.indexOf(name) !== -1) {
+                    if (Plasmoid.configuration.interfacesWhitelist.indexOf(name) !== -1) {
                         continue
                     }
 
@@ -130,12 +135,14 @@ Kirigami.FormLayout {
                             enabled: interfacesWhitelistEnabled.checked
 
                             onCheckedChanged: {
-                                var index = cfg_interfacesWhitelist.indexOf(name)
+                                var list = cfg_interfacesWhitelist.slice()
+                                var index = list.indexOf(name)
                                 if (checked && index === -1) {
-                                    cfg_interfacesWhitelist.push(name)
+                                    list.push(name)
                                 } else if (!checked && index !== -1) {
-                                    cfg_interfacesWhitelist.splice(index, 1)
+                                    list.splice(index, 1)
                                 }
+                                cfg_interfacesWhitelist = list
                             }
                         }
                     }

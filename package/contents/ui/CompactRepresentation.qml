@@ -17,8 +17,10 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.plasma.core as PlasmaCore
+import org.kde.plasma.plasmoid
 import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.kirigami as Kirigami
+import "../code/utils.js" as Utils
 
 Item {
     anchors.fill: parent
@@ -54,7 +56,7 @@ Item {
         switch (speedLayout) {
             case 'rows': return false
             case 'columns': return true
-            default: return height / 2 * fontSizeScale < Kirigami.Theme.smallFont.pixelSize && plasmoid.formFactor != PlasmaCore.Types.Vertical
+            default: return height / 2 * fontSizeScale < Kirigami.Theme.smallFont.pixelSize && Plasmoid.formFactor != PlasmaCore.Types.Vertical
         }
     }
 
@@ -79,7 +81,7 @@ Item {
     property double fontHeightRatio: speedTextMetrics.font.pixelSize / speedTextMetrics.height
 
     property double offset: {
-        if (plasmoid.formFactor === PlasmaCore.Types.Vertical) {
+        if (Plasmoid.formFactor === PlasmaCore.Types.Vertical) {
             return (width - height * aspectRatio) / 2
         } else {
             return 0
@@ -87,18 +89,18 @@ Item {
     }
 
     Layout.minimumWidth: {
-        if (plasmoid.formFactor === PlasmaCore.Types.Vertical) {
+        if (Plasmoid.formFactor === PlasmaCore.Types.Vertical) {
             return 0
-        } else if (plasmoid.formFactor === PlasmaCore.Types.Horizontal) {
+        } else if (Plasmoid.formFactor === PlasmaCore.Types.Horizontal) {
             return Math.ceil(height * aspectRatio)
         } else {
             return Math.ceil(height * aspectRatio)
         }
     }
     Layout.minimumHeight: {
-        if (plasmoid.formFactor === PlasmaCore.Types.Vertical) {
+        if (Plasmoid.formFactor === PlasmaCore.Types.Vertical) {
             return Math.ceil(width / aspectRatio * fontSizeScale * fontSizeScale)
-        } else if (plasmoid.formFactor === PlasmaCore.Types.Horizontal) {
+        } else if (Plasmoid.formFactor === PlasmaCore.Types.Horizontal) {
             return 0
         } else {
             return Math.ceil(Kirigami.Theme.smallFont.pixelSize / fontSizeScale)
@@ -107,28 +109,6 @@ Item {
 
     Layout.preferredWidth: Layout.minimumWidth
     Layout.preferredHeight: Layout.minimumHeight
-
-    PlasmaCore.ToolTipArea {
-        anchors.fill: parent
-        icon: 'network-connect'
-        mainText: i18n('Network usage')
-        subText: {
-            var details = ''
-            for (var key in speedData) {
-                if (interfacesWhitelistEnabled && interfacesWhitelist.indexOf(key) === -1) {
-                    continue
-                }
-
-                if (details != '') {
-                    details += '<br><br>'
-                }
-
-                details += '<b>' + key + '</b><br>'
-                details += 'Downloaded: <b>' + totalText(speedData[key].downTotal) + '</b>, Uploaded: <b>' + totalText(speedData[key].upTotal) + '</b>'
-            }
-            return details
-        }
-    }
 
     TextMetrics {
         id: iconTextMetrics
@@ -163,7 +143,7 @@ Item {
     Plasma5Support.DataSource {
         id: appsSource
         engine: 'apps'
-        connectedSources: launchApplication
+        connectedSources: launchApplication ? [launchApplication] : []
     }
 
     Loader {
@@ -294,7 +274,7 @@ Item {
 
         onClicked: {
             if (launcher.item && appsSource.data[launchApplication]) {
-                launcher.item.launch("file:" + appsSource.data[launchApplication].entryPath)
+                launcher.item.launch(appsSource.data[launchApplication].entryPath)
             }
         }
     }
@@ -395,25 +375,5 @@ Item {
                 return shortUnits ? 'B' : 'B/s'
             }
         }
-    }
-
-    function totalText(value) {
-        var unit
-        if (value >= 1024 * 1024 * 1024) {
-            value /= 1024 * 1024 * 1024
-            unit = 'GiB'
-        }
-        else if (value >= 1024 * 1024) {
-            value /= 1024 * 1024
-            unit = 'MiB'
-        }
-        else if (value >= 1024) {
-            value /= 1024
-            unit = 'KiB'
-        }
-        else {
-            unit = 'B'
-        }
-        return (Math.round(value * 10) / 10).toFixed(1) + ' ' + unit
     }
 }

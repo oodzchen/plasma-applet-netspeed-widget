@@ -35,3 +35,20 @@ function calcSpeedData(prevTransferData, nextTransferData, duration) {
 
     return speedData;
 }
+
+function totalText(value) {
+    let unit;
+    if (value >= 1024 * 1024 * 1024) {
+        value /= 1024 * 1024 * 1024;
+        unit = 'GiB';
+    } else if (value >= 1024 * 1024) {
+        value /= 1024 * 1024;
+        unit = 'MiB';
+    } else if (value >= 1024) {
+        value /= 1024;
+        unit = 'KiB';
+    } else {
+        unit = 'B';
+    }
+    return (Math.round(value * 10) / 10).toFixed(1) + ' ' + unit;
+}

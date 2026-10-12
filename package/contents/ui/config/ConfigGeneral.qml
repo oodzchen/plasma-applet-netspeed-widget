@@ -18,6 +18,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid
 
 Kirigami.FormLayout {
     property alias cfg_showSeparately: showSeparately.checked
@@ -64,7 +65,7 @@ Kirigami.FormLayout {
 
             Component.onCompleted: {
                 for (var i = 0; i < model.length; i++) {
-                    if (model[i]['value'] == plasmoid.configuration.speedLayout) {
+                    if (model[i]['value'] == Plasmoid.configuration.speedLayout) {
                         speedLayout.currentIndex = i
                     }
                 }
@@ -91,7 +92,7 @@ Kirigami.FormLayout {
             onCurrentIndexChanged: cfg_swapDownUp = model[currentIndex]['value'] == 'up'
 
             Component.onCompleted: {
-                if (plasmoid.configuration.swapDownUp) {
+                if (Plasmoid.configuration.swapDownUp) {
                     displayOrder.currentIndex = 0
                 } else {
                     displayOrder.currentIndex = 1
@@ -120,7 +121,7 @@ Kirigami.FormLayout {
 
             Component.onCompleted: {
                 for (var i = 0; i < model.length; i++) {
-                    if (model[i]['value'] == plasmoid.configuration.speedUnits) {
+                    if (model[i]['value'] == Plasmoid.configuration.speedUnits) {
                         speedUnits.currentIndex = i
                     }
                 }
@@ -170,7 +171,7 @@ Kirigami.FormLayout {
             to: 200
             stepSize: 5
             textFromValue: function(value) { return value + ' %'; }
-            valueFromText: function(text) { return Number(text.remove(RegExp(' %$'))); }
+            valueFromText: function(text) { return parseInt(text) || 10; }
         }
 
         Label {
@@ -183,7 +184,7 @@ Kirigami.FormLayout {
             to: 10
             stepSize: 1
             textFromValue: function(value) { return value + ' s'; }
-            valueFromText: function(text) { return Number(text.remove(RegExp(' s$'))); }
+            valueFromText: function(text) { return parseInt(text) || 1; }
         }
 
         GroupBox {

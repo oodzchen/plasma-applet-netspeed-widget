@@ -29,19 +29,23 @@ Item {
     width: childrenRect.width
     height: childrenRect.height
 
-    onMenuIdChanged: {
+    function updateButton() {
         if (appsSource.data[menuId]) {
             appButton.text = appsSource.data[menuId].name
-            appButton.iconSource = appsSource.data[menuId].iconName
+            appButton.icon.name = appsSource.data[menuId].iconName || ''
         } else {
             appButton.text = i18n('Choose application ...')
+            appButton.icon.name = ''
         }
     }
+
+    onMenuIdChanged: updateButton()
 
     Plasma5Support.DataSource {
         id: appsSource
         engine: 'apps'
         connectedSources: sources
+        onDataChanged: updateButton()
     }
 
     PlasmaComponents.Button {

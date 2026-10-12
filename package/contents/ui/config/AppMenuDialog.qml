@@ -16,7 +16,6 @@
  */
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Dialogs
 import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as Plasma5Support
@@ -37,6 +36,11 @@ Dialog {
         id: appsSource
         engine: 'apps'
         connectedSources: sources
+        onDataChanged: {
+            if (appsModel.count === 0) {
+                listMenuEntries('/')
+            }
+        }
     }
 
     ListModel {
@@ -130,6 +134,9 @@ Dialog {
     }
 
     function listMenuEntries(menuId) {
+        if (!appsSource.data[menuId] || !appsSource.data[menuId].entries) {
+            return
+        }
         for (var i = 0; i < appsSource.data[menuId].entries.length; i++) {
             var entry = appsSource.data[menuId].entries[i]
             if (/\.desktop$/.test(entry)) {

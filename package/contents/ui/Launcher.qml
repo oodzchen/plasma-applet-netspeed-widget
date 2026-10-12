@@ -1,12 +1,25 @@
-import QtQuick 2.5
-import org.kde.plasma.private.quicklaunch 1.0
+import QtQuick
+import org.kde.plasma.plasma5support as Plasma5Support
 
 Item {
-    Logic {
-        id: kRun
+    id: launcher
+
+    Plasma5Support.DataSource {
+        id: executableSource
+        engine: 'executable'
+        connectedSources: []
+
+        onNewData: (sourceName, data) => {
+            disconnectSource(sourceName)
+        }
     }
 
-    function launch(url) {
-        kRun.openUrl(url)
+    function launch(entryPath) {
+        if (!entryPath) {
+            return
+        }
+        var path = entryPath.toString().replace(/^file:\/\//, "").replace(/^file:/, "")
+        var cmd = 'kstart --application "' + path + '" || xdg-open "' + path + '"'
+        executableSource.connectSource(cmd)
     }
 }
