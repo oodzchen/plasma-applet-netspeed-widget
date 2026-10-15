@@ -13,7 +13,7 @@
         "Id": "org.kde.netspeedWidget",
         "License": "GPL-2.0+",
         "Name": "Netspeed Widget",
-        "Version": "3.2.1",
+        "Version": "3.3",
         "Website": "https://github.com/dfaust/plasma-applet-netspeed-widget"
     },
     "X-Plasma-API-Minimum-Version": "6.0"

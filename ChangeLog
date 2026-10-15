@@ -1,3 +1,7 @@
+3.3 (2026.10.16):
+Show top processes by network speed in tooltip
+Fix launching application on click under Wayland
+
 3.2.1 (2026.09.28):
 Fix tooltip rich text rendering on Plasma 6
 
