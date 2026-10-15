@@ -37,6 +37,11 @@ QQC2.Dialog {
         id: appsSource
         engine: 'apps'
         connectedSources: sources
+        onDataChanged: {
+            if (appsModel.count === 0) {
+                listMenuEntries('/')
+            }
+        }
     }
 
     ListModel {

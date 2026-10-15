@@ -15,9 +15,13 @@ Item {
 
     function launch(urlOrPath) {
         if (!urlOrPath) return
-        var path = urlOrPath.toString().replace(/^file:\/\//, "")
+        var path = urlOrPath.toString().replace(/^file:\/\//, "").replace(/^file:/, "")
         var base = path.replace(/^.*[\\\/]/, "")
-        var cmd = "gio launch '" + path.replace(/'/g, "'\\''") + "' 2>/dev/null || gtk-launch '" + base.replace(/'/g, "'\\''") + "' 2>/dev/null"
+        var quotedPath = "'" + path.replace(/'/g, "'\\''") + "'"
+        var quotedBase = "'" + base.replace(/'/g, "'\\''") + "'"
+        var cmd = "kstart --application " + quotedPath + " 2>/dev/null"
+            + " || gio launch " + quotedPath + " 2>/dev/null"
+            + " || gtk-launch " + quotedBase + " 2>/dev/null"
         execSource.connectSource(cmd)
     }
 }
