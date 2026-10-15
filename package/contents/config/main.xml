@@ -72,6 +72,12 @@
         <entry name="interfacesWhitelist" type="StringList">
             <default></default>
         </entry>
+        <entry name="showProcesses" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="processCount" type="Int">
+            <default>5</default>
+        </entry>
     </group>
 
 </kcfg>

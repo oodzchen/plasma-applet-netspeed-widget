@@ -25,7 +25,13 @@ import "../code/utils.js" as Utils
 Item {
     anchors.fill: parent
 
+    readonly property alias hovered: hoverHandler.hovered
+
     property double marginFactor: 0.2
+
+    HoverHandler {
+        id: hoverHandler
+    }
 
     property double downSpeed: {
         var speed = 0

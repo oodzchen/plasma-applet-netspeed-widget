@@ -43,6 +43,13 @@ PlasmoidItem {
     property string launchApplication: Plasmoid.configuration.launchApplication
     property bool interfacesWhitelistEnabled: Plasmoid.configuration.interfacesWhitelistEnabled
     property var interfacesWhitelist: Plasmoid.configuration.interfacesWhitelist
+    property bool showProcesses: Plasmoid.configuration.showProcesses
+    property int processCount: Plasmoid.configuration.processCount || 5
+
+    // Per-process capture only runs while hovered, plus a grace period so
+    // quickly re-hovering doesn't restart the capture helper
+    property bool representationHovered: false
+    readonly property bool processMonitorActive: showProcesses && (representationHovered || processGraceTimer.running)
 
     property var transferDataTs: 0
     property var transferData: ({})
@@ -65,12 +72,61 @@ PlasmoidItem {
             details += '<b>' + key + '</b><br>'
             details += 'Downloaded: <b>' + Utils.totalText(speedData[key].downTotal) + '</b>, Uploaded: <b>' + Utils.totalText(speedData[key].upTotal) + '</b>'
         }
-        return details
+        return details + processDetails()
     }
 
-    compactRepresentation: CompactRepresentation {}
-    fullRepresentation: CompactRepresentation {}
+    compactRepresentation: CompactRepresentation {
+        onHoveredChanged: root.representationHovered = hovered
+    }
+    fullRepresentation: CompactRepresentation {
+        onHoveredChanged: root.representationHovered = hovered
+    }
     preferredRepresentation: Plasmoid.formFactor === PlasmaCore.Types.Planar ? fullRepresentation : compactRepresentation
+
+    onRepresentationHoveredChanged: {
+        if (!representationHovered) {
+            processGraceTimer.restart()
+        }
+    }
+
+    Timer {
+        id: processGraceTimer
+        interval: 10000
+    }
+
+    Loader {
+        id: processMonitor
+        active: root.showProcesses
+        source: 'ProcessMonitor.qml'
+
+        onLoaded: {
+            item.active = Qt.binding(() => root.processMonitorActive)
+            item.maxCount = Qt.binding(() => root.processCount)
+        }
+    }
+
+    function processDetails() {
+        const monitor = processMonitor.item
+        if (!monitor || !monitor.active) {
+            return ''
+        }
+
+        var details = '<br><br><b>' + i18n('Top processes') + '</b>'
+        if (!monitor.hasData) {
+            return details + '<br>' + i18n('Measuring…')
+        }
+        if (monitor.processes.length === 0) {
+            return details + '<br>' + i18n('No process network activity')
+        }
+
+        details += '<table cellspacing="0" cellpadding="1">'
+        for (const proc of monitor.processes) {
+            details += '<tr><td>' + Utils.escapeHtml(proc.name) + '&nbsp;&nbsp;</td>'
+                + '<td align="right">↓ ' + Utils.speedText(proc.down, speedUnits) + '&nbsp;&nbsp;</td>'
+                + '<td align="right">↑ ' + Utils.speedText(proc.up, speedUnits) + '</td></tr>'
+        }
+        return details + '</table>'
+    }
 
     Plasma5Support.DataSource {
         id: dataSource

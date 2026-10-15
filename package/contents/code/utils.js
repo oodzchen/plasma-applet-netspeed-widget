@@ -62,3 +62,45 @@ function totalText(value) {
     }
     return (Math.round(value * 10) / 10).toFixed(1) + " " + unit;
 }
+
+// Same conversion as the panel's speedText/speedUnit, with the unit appended
+function speedText(value, speedUnits) {
+    value = Number(value) || 0;
+    let unit;
+    if (speedUnits === "bits") {
+        value *= 8 * 1.024;
+        if (value >= 1000 * 1000 * 1000) {
+            value /= 1000 * 1000 * 1000;
+            unit = "Gb/s";
+        } else if (value >= 1000 * 1000) {
+            value /= 1000 * 1000;
+            unit = "Mb/s";
+        } else if (value >= 1000) {
+            value /= 1000;
+            unit = "Kb/s";
+        } else {
+            unit = "b/s";
+        }
+    } else {
+        if (value >= 1000 * 1024 * 1024) {
+            value /= 1024 * 1024 * 1024;
+            unit = "GiB/s";
+        } else if (value >= 1000 * 1024) {
+            value /= 1024 * 1024;
+            unit = "MiB/s";
+        } else if (value >= 1000) {
+            value /= 1024;
+            unit = "KiB/s";
+        } else {
+            unit = "B/s";
+        }
+    }
+    return (Math.round(value * 10) / 10).toFixed(1) + " " + unit;
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}

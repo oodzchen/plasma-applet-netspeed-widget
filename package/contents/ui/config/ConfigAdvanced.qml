@@ -27,10 +27,18 @@ Kirigami.FormLayout {
     property alias cfg_launchApplication: launchApplication.menuId
     property alias cfg_interfacesWhitelistEnabled: interfacesWhitelistEnabled.checked
     property var cfg_interfacesWhitelist: []
+    property alias cfg_showProcesses: showProcesses.checked
+    property alias cfg_processCount: processCount.value
 
     Loader {
         id: launcher
         source: '../Launcher.qml'
+    }
+
+    // Only checks that libksysguard's process module is available
+    Loader {
+        id: processMonitorProbe
+        source: '../ProcessMonitor.qml'
     }
 
     Plasma5Support.DataSource {
@@ -89,6 +97,27 @@ Kirigami.FormLayout {
         QQC2.Label {
             text: i18n('If you want to launch an application,\nyou need to install the package plasma-addons first.')
             visible: launcher.item == null
+            Layout.columnSpan: 2
+        }
+
+        QQC2.CheckBox {
+            id: showProcesses
+            text: i18n('Show top processes in tooltip:')
+            enabled: processMonitorProbe.item != null
+        }
+
+        QQC2.SpinBox {
+            id: processCount
+            from: 1
+            to: 10
+            enabled: processMonitorProbe.item != null && showProcesses.checked
+        }
+
+        QQC2.Label {
+            text: processMonitorProbe.item != null
+                ? i18n('Covers your own processes on all interfaces.')
+                : i18n('If you want to show top processes,\nyou need to install the package libksysguard first.')
+            opacity: 0.7
             Layout.columnSpan: 2
         }
 
